@@ -1,4 +1,4 @@
-// Auto-Bollard 2018
+// DAQ 2019
 // GPL v3
 // SUBC: the UBC Submarine Design Team
 
