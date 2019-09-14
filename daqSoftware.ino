@@ -2,9 +2,13 @@
 // GPL v3
 // SUBC: the UBC Submarine Design Team
 
+#include <Wire.h>
+#include "I2Cdev.h"
 #include "HX711.h"
 #include <SD.h>
 #include <SPI.h>
+#include <MPU6050.h>
+#include <MS5837.h>
 
 // Load cell calibration
 #define calibration_factor -10860.0 //calibrated with 750g test load
