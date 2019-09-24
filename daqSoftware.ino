@@ -34,6 +34,12 @@
 // Load cell object
 HX711 scale;
 
+// IMU variables and objects
+MPU6050 IMU;
+bool IMUWorking = false;
+int16_t ax, ay, az, azPrev, oldAX=90;
+int16_t gx, gy, gz;
+
 volatile int changes=0;
 unsigned long startTime;
 unsigned long endTime;
@@ -71,6 +77,21 @@ void setup() {
     }
     Serial.println("initialization done.");
   }
+
+  // Initialize IMU
+  Wire.begin();
+  Serial.println( "Initializing the sensor" );
+  IMU.initialize ( );
+  IMUWorking = IMU.testConnection();
+  if (IMUWorking == true){
+    Serial.println ("Successfully Connected");
+    delay (1000);
+    Serial.println ( "Taking Values from the sensor" );
+    delay (1000);
+  } else {
+    Serial.println("Connection failed");
+  }
+  
   // Button stuff
   pinMode(BUTTONPIN, INPUT);
   attachInterrupt(digitalPinToInterrupt(BUTTONPIN), buttonPress, FALLING);
