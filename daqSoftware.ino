@@ -58,8 +58,6 @@ int lastButtonState = LOW;   // the previous reading from the input pin
 unsigned long lastDebounceTime = 0;  // the last time the output pin was toggled
 unsigned long debounceDelay = 50;    // the debounce time; increase if the output flickers*/
 
-File outputFile;
-
 void buttonPress(void);
 void tachoChange(void);
 
@@ -70,7 +68,6 @@ void setup() {
   }
   if (SDON==true){
     Serial.print("Initializing SD card...");
-  
     if (!SD.begin(4)) {
       Serial.println("initialization failed!");
       while (1);
@@ -91,6 +88,26 @@ void setup() {
   } else {
     Serial.println("Connection failed");
   }
+  
+  // Initialize bar02(MS5837) pressure sensor
+  bar_02.setModel(MS5837::MS5837_02BA);
+  if (!bar_02.init()){
+    Serial.println("Pressure sensor initialization failed!");
+    delay(1000);
+  }
+
+  bool endBuoyancy;
+  MS5837 bar_02; // bar_02 pressure sensor
+  double setDepth;
+  double depth;
+  File outputFile; 
+  
+  bar_02.setFluidDensity(997); // kg/m^3 (997 freshwater, 1029 for seawater)
+  bar_02.read();//read pressure sensor
+  setDepth = bar_02.depth(); //get the set depth value
+  // Initialize buoyancy compensator variable
+  endBuoyancy = LOW;
+  pwm = initPWM;
   
   // Button stuff
   pinMode(BUTTONPIN, INPUT);
