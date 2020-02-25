@@ -13,8 +13,9 @@
 
 // Define which parts are on
 //#define TACHO
-//#define SDON
-//#define DEPTHSENSOR
+#define SDON
+#define DEPTHSENSOR
+//#define BATTSENSE
 
 // Change when plugged in to Arduino
 #define tachoPin 2
@@ -71,6 +72,13 @@ void dmpDataReady() {
 
 // End Rowberg code
 
+#ifdef DEPTHSENSOR
+  bool endBuoyancy;
+    
+  double setDepth;
+  double depth;
+#endif
+
 #ifdef SDON
   File outputFile;
 #endif
@@ -95,7 +103,7 @@ void setup() {
   // SD Initialization
   #ifdef SDON
     Serial.print("Initializing SD card...");
-    if (!SD.begin(4)) {
+    if (!SD.begin(PA15)) {
       Serial.println("SD initialization failed!");
       error = true;
     } 
@@ -166,16 +174,15 @@ void setup() {
   
   // Initialize bar02(MS5837) pressure sensor
   #ifdef DEPTHSENSOR
+    MS5837 bar_02; // bar_02 pressure sensor
+    
     bar_02.setModel(MS5837::MS5837_02BA);
     if (!bar_02.init()){
       Serial.println("Pressure sensor initialization failed!");
       error = true;
       delay(1000);
     }
-    bool endBuoyancy;
-    MS5837 bar_02; // bar_02 pressure sensor
-    double setDepth;
-    double depth;
+    
 
     bar_02.setFluidDensity(997); // kg/m^3 (997 freshwater, 1029 for seawater)
     bar_02.read();//read pressure sensor
@@ -246,11 +253,40 @@ void loop() {
 
   if(!(error) && running && millis()-startTime>MEASUREDELAY){
     endTime=millis();
-
+    IMU.getMotion6(&ax, &ay, &az, &gx, &gy, &gz);
     Serial.print("Time: ");
     duration=(endTime-recordTime);
     #ifdef SDON
+      // Order of outputs: Time, Yaw, Pitch, Roll, ax, ay, az, gx, gy, gz, RPM, depth
       outputFile.print(duration);
+      outputFile.print(",");
+      outputFile.print(ypr[0]);
+      outputFile.print(",");
+      outputFile.print(ypr[1]);
+      outputFile.print(",");
+      outputFile.print(ypr[2]);
+      outputFile.print(",");
+      outputFile.print(ax);
+      outputFile.print(",");
+      outputFile.print(ay);
+      outputFile.print(",");
+      outputFile.print(az);
+      outputFile.print(",");
+      outputFile.print(gx);
+      outputFile.print(",");
+      outputFile.print(gy);
+      outputFile.print(",");
+      outputFile.print(gz);
+      #ifdef TACHO
+        outputFile.print(",");
+        outputFile.print(rpm);
+      #endif
+      
+      #ifdef DEPTHSENSOR
+        outputFile.print(",");  
+        outputFile.print(depth);
+      #endif
+      outputFile.println("");
     #endif
     Serial.print(duration);
     
@@ -294,9 +330,13 @@ void buttonPress(void){
             break;  // leave the loop!
           }
         }
-        outputFile.print("Time(ms)");
+        // Order of outputs: Time, Yaw, Pitch, Roll, ax, ay, az, gx, gy, gz, RPM
+        outputFile.print("Time(ms),Yaw,Pitch,Roll,ax,ay,az,gx,gy,gz");
         #ifdef TACHO
           outputFile.print(",RPM");
+        #endif
+        #ifdef DEPTHSENSOR
+          outputFile.print(",depth");
         #endif
         outputFile.println("");
         Serial.print(filename);
