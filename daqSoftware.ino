@@ -11,6 +11,11 @@
 #include "helper_3dmath.h"
 #include <MS5837.h>
 
+//Push-button 
+#include "stm32f10x.h"
+#include "stm32f10x_rcc.h"
+#include "stm32f10x_gpio.h"
+
 // Define which parts are on
 //#define TACHO
 #define SDON
@@ -302,64 +307,99 @@ void loop() {
   
 
 void buttonPress(void){
-  Serial.println("Button falling!");
-  if (millis()-oldFall>DEBOUNCETIME){
-    oldFall=millis();
-    if (running==true&&!(error)){
-
-      #ifdef SDON
-        // Stuff to close file, etc.
-        outputFile.close();
-        Serial.println("Closing file...");
-      #endif
-
-      running=false;
-      digitalWrite(INDICATORPIN, LOW);
-      delay(100);
-    } else if (running==false&&!(error)){
-      #ifdef SDON
-        // Stuff to open file, etc.
-        // create a new file
-        char filename[] = "DATA00.CSV";
-        for (uint8_t i = 0; i < 100; i++) {
-          filename[4] = i/10 + '0';
-          filename[5] = i%10 + '0';
-          if (! SD.exists(filename)) {
-            // only open a new file if it doesn't exist
-            outputFile = SD.open(filename, FILE_WRITE);
-            break;  // leave the loop!
-          }
-        }
-        // Order of outputs: Time, Yaw, Pitch, Roll, ax, ay, az, gx, gy, gz, RPM
-        outputFile.print("Time(ms),Yaw,Pitch,Roll,ax,ay,az,gx,gy,gz");
-        #ifdef TACHO
-          outputFile.print(",RPM");
-        #endif
-        #ifdef DEPTHSENSOR
-          outputFile.print(",depth");
-        #endif
-        outputFile.println("");
-        Serial.print(filename);
-        Serial.println(" successfully initialized!");
-      #endif
-      
-      digitalWrite(INDICATORPIN, HIGH);
-      running=true;
+  while(button()){
+    Serial.println("Button falling!");
+    if (millis()-oldFall>DEBOUNCETIME){
+      oldFall=millis();
+      if (running==true&&!(error)){
   
-      changes=0;
-      startTime=millis();
-      recordTime=startTime;
+        #ifdef SDON
+          // Stuff to close file, etc.
+          outputFile.close();
+          Serial.println("Closing file...");
+        #endif
+  
+        running=false;
+        digitalWrite(INDICATORPIN, LOW);
+        delay(100);
+      } else if (running==false&&!(error)){
+        #ifdef SDON
+          // Stuff to open file, etc.
+          // create a new file
+          char filename[] = "DATA00.CSV";
+          for (uint8_t i = 0; i < 100; i++) {
+            filename[4] = i/10 + '0';
+            filename[5] = i%10 + '0';
+            if (! SD.exists(filename)) {
+              // only open a new file if it doesn't exist
+              outputFile = SD.open(filename, FILE_WRITE);
+              break;  // leave the loop!
+            }
+          }
+          // Order of outputs: Time, Yaw, Pitch, Roll, ax, ay, az, gx, gy, gz, RPM
+          outputFile.print("Time(ms),Yaw,Pitch,Roll,ax,ay,az,gx,gy,gz");
+          #ifdef TACHO
+            outputFile.print(",RPM");
+          #endif
+          #ifdef DEPTHSENSOR
+            outputFile.print(",depth");
+          #endif
+          outputFile.println("");
+          Serial.print(filename);
+          Serial.println(" successfully initialized!");
+        #endif
+        
+        digitalWrite(INDICATORPIN, HIGH);
+        running=true;
+    
+        changes=0;
+        startTime=millis();
+        recordTime=startTime;
+      } else {
+        #ifdef SDON
+          Serial.println("Something went wrong. Trying to close file.");
+          outputFile.close();
+        #endif
+      }
     } else {
-      #ifdef SDON
-        Serial.println("Something went wrong. Trying to close file.");
-        outputFile.close();
-      #endif
+      Serial.println("Not enough time has passed since the last event. Debouncing.");
     }
-  } else {
-    Serial.println("Not enough time has passed since the last event. Debouncing.");
   }
 }
 
 void tachoChange(void) {
   changes++;
+}
+
+//Push-button with LED displaying whether it is pushed or not
+//Will later be modified to return true if pressed and false if not
+//Code from Hands On Embedded: http://www.handsonembedded.com/stm32f103-spl-tutorial-3/
+void button(void){
+  
+  // Enable clock for GPIOA
+  RCC_APB2PeriphClockCmd(RCC_APB2Periph_GPIOA, ENABLE); 
+
+  // Cofigure PA0 as open-drain output
+  GPIO_InitStruct.GPIO_Pin = GPIO_Pin_0;
+  GPIO_InitStruct.GPIO_Speed = GPIO_Speed_2MHz;
+  GPIO_InitStruct.GPIO_Mode = GPIO_Mode_Out_OD;
+  GPIO_Init(GPIOA, &GPIO_InitStruct);
+
+  // Cofigure PA1 as input with internal pull-up resistor
+  GPIO_InitStruct.GPIO_Pin = GPIO_Pin_1;
+  GPIO_InitStruct.GPIO_Speed = GPIO_Speed_2MHz;
+  GPIO_InitStruct.GPIO_Mode = GPIO_Mode_IPU;
+  GPIO_Init(GPIOA, &GPIO_InitStruct);
+
+  while (1){
+      // If button on PA1 is pressed (button circuit is active low)
+      if (!(GPIO_ReadInputData(GPIOA) & GPIO_Pin_1)){
+        // Turn on LED on PA0 (LED circuit is active low)
+        GPIO_ResetBits(GPIOA, GPIO_Pin_0);
+      }
+      else{
+        // Turn off LED on PA0
+        GPIO_SetBits(GPIOA, GPIO_Pin_0);
+      }
+  }
 }
