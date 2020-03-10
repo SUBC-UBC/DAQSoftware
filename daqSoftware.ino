@@ -19,11 +19,11 @@
 
 // Change when plugged in to Arduino
 #define tachoPin 2
-#define BUTTONPIN 3
-#define INDICATORPIN 9
+#define BUTTONPIN PC14
+#define INDICATORPIN PB12
 #define SDAPIN  PB9
 #define SCLPIN  PB8
-#define IMUINTPIN 2
+#define IMUINTPIN PB11
 
 //#define BEFORECALC 4
 #define MEASUREDELAY 500
