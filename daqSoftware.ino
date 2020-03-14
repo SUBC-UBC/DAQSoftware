@@ -2,6 +2,10 @@
 // GPL v3
 // SUBC: the UBC Submarine Design Team
 
+//not sure if this necessary 
+//also not sure if we need to put the json stuff in a .cpp file in order to use ArduinoJSON
+#define ARDUINOJSON_EMBEDDED_MODE 1
+
 #include <ArduinoJson.h>
 #include <Wire.h>
 #include "I2Cdev.h"
@@ -15,7 +19,7 @@
 // Define which parts are on
 //#define TACHO
 #define SDON
-//#define DEPTHSENSOR
+#define DEPTHSENSOR
 //#define BATTSENSE
 
 // Change when plugged in to Arduino
