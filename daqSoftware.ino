@@ -2,6 +2,7 @@
 // GPL v3
 // SUBC: the UBC Submarine Design Team
 
+#include <ArduinoJson.h>
 #include <Wire.h>
 #include "I2Cdev.h"
 #include <SD.h>
@@ -30,6 +31,43 @@
 #define CHANGEPERREV 2
 #define DELAYTIME 5
 #define DEBOUNCETIME 250
+
+//Serial output for SubSee
+#ifdef SeeSerial
+  Serial.begin(9600); 
+
+  // SubSeeJSON will be the name of our new JSON object
+  if(Serial.read()== 'SubSeeJSON'){
+    DynamicJsonBuffer jBuffer; 
+    JsonObject& root = jBuffer.creatObject(); 
+  
+    /*
+    Depth - int (probably a double?)
+    Yaw - int (float?)
+    Pitch - int (float?)
+    Real Time - int (long?)---int should be enough but maybe long just to be safe
+    Battery - Bool
+    RPM - int
+    Warning - Bool (can perhaps be combined with "Battery" in the future
+    */
+
+    //will be updated later to be unix timestamp
+    long currTime = 1; 
+    //also need to get values from tachometer
+    int RPM = 1; 
+    
+    root["Depth"] = depth;
+    root["Yaw"] = ypr[0]; 
+    root["Pitch"] = ypr[1]; 
+    root["Real Time"] = currTime; 
+    //root["Battery"];
+    root["RPM"] = RPM; 
+    //root["Warning"]; 
+
+    root.prettyPrintTo(Serial);
+    Serial.println(); 
+  }
+#endif
 
 // IMU variables and objects
 MPU6050 IMU;
