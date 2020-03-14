@@ -9,7 +9,7 @@
 //#include "MPU6050.h"
 #include "MPU6050_6Axis_MotionApps20.h"
 #include "helper_3dmath.h"
-#include "MS5837.h"
+#include <MS5837.h>
 
 // Define which parts are on
 //#define TACHO
