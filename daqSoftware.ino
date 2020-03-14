@@ -15,7 +15,7 @@
 // Define which parts are on
 //#define TACHO
 #define SDON
-#define DEPTHSENSOR
+//#define DEPTHSENSOR
 //#define BATTSENSE
 
 // Change when plugged in to Arduino
