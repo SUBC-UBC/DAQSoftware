@@ -6,11 +6,11 @@
 #include <SPI.h>
 #include <Wire.h>
 
-#include "lib/I2Cdev.h"
+#include "src/lib/I2Cdev.h"
 //#include "lib/MPU6050.h"
-#include "lib/MPU6050_6Axis_MotionApps20.h"
-#include "lib/MS5837.h"
-#include "lib/helper_3dmath.h"
+#include "src/lib/MPU6050_6Axis_MotionApps20.h"
+#include "src/lib/MS5837.h"
+#include "src/lib/helper_3dmath.h"
 
 #include "daqSoftware.h"
 
