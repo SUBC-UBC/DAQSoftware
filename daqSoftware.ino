@@ -80,6 +80,10 @@ int. unsigned long lastDebounceTime = 0;  // the last time the output pin was
 toggled unsigned long debounceDelay = 50;    // the debounce time; increase if
 the output flickers*/
 
+///////////////////////////////////////////////////////////
+// SubSee Serial JSON output objects
+HardwareSerial Serial3(SUBSEERIAL_RX, SUBSEERIAL_TX);
+
 void setup() {
   Serial.begin(115200);
   while (!Serial) {
@@ -103,6 +107,10 @@ void setup() {
   attachInterrupt(digitalPinToInterrupt(tachoPin), tachoChange, CHANGE);
 #endif
 
+#ifdef SUBSEERIAL
+  // Initialize SubSee serial output
+  Serial3.begin(SUBSEERIAL_BAUD);
+#endif
   // Button stuff
   pinMode(BUTTONPIN, INPUT);
   attachInterrupt(digitalPinToInterrupt(BUTTONPIN), buttonPress, FALLING);
@@ -113,7 +121,9 @@ void setup() {
 
 void loop() {
 
-  if (!(error) && running && millis() - startTime > MEASUREDELAY) {
+  // Before we acquire data, make sure DAQ is not errored, is supposed to be
+  // running, and we're not in a delay period
+  if (!(error) && running && (millis() - startTime > MEASUREDELAY)) {
     endTime = millis();
     IMU.getMotion6(&ax, &ay, &az, &gx, &gy, &gz);
     getDMPData();
@@ -418,5 +428,12 @@ void print_data_to_serial() {
   Serial.print(depth);
 #endif
   Serial.println("");
+  return;
+}
+
+void send_subsee_data(void){
+  #ifdef SUBSEERIAL
+// We send data as JSON, here manually constructed
+  #endif
   return;
 }

@@ -7,6 +7,7 @@
 #define SDON
 //#define DEPTHSENSOR
 //#define BATTSENSE
+#define SUBSEERIAL
 
 // Change when plugged in to Arduino
 #define tachoPin 2
@@ -14,7 +15,11 @@
 #define INDICATORPIN PB12
 #define SDAPIN PB9
 #define SCLPIN PB8
-#define IMUINTPIN PB11
+#define IMUINTPIN PB1
+#define SUBSEERIAL_TX PB10 
+#define SUBSEERIAL_RX PB11
+
+#define SUBSEERIAL_BAUD 9600
 
 //#define BEFORECALC 4
 #define MEASUREDELAY 500
@@ -32,3 +37,4 @@ void init_Depth(void);
 void getDMPData(void);
 void print_data_to_file(void);
 void print_data_to_serial(void);
+void send_subsee_data(void);
