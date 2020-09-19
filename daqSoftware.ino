@@ -14,6 +14,12 @@
 
 #include "daqSoftware.h"
 
+// For VS Code Linting support
+#ifndef Serial
+HardwareSerial Serial(PIN_SERIAL_RX, PIN_SERIAL_TX);
+#endif
+// End serial linting
+
 // IMU variables and objects
 MPU6050 IMU;
 bool IMUWorking = false;
@@ -431,9 +437,9 @@ void print_data_to_serial() {
   return;
 }
 
-void send_subsee_data(void){
-  #ifdef SUBSEERIAL
-// We send data as JSON, here manually constructed
-  #endif
+void send_subsee_data(void) {
+#ifdef SUBSEERIAL
+  // We send data as JSON, here manually constructed
+#endif
   return;
 }
