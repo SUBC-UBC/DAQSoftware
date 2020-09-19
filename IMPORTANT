@@ -1,3 +1,8 @@
 CONNECT SD CARD TO 5V NOT 3.3
 VERY IMPORTANT
 WILL NOT WORK ON 3.3V
+
+For Arduino IDE to recognize files in a different directory, they must be under src/
+ex. #include "lib/foo.h" would not work, however
+#include "src/lib/foo.h" would work, as well as
+#include "foo.h"
