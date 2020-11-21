@@ -6,13 +6,13 @@
 #include <SPI.h>
 #include <Wire.h>
 
-#include "src/lib/I2Cdev.h"
-//#include "lib/MPU6050.h"
-#include "src/lib/MPU6050_6Axis_MotionApps20.h"
-#include "src/lib/MS5837.h"
-#include "src/lib/helper_3dmath.h"
-
-#include "daqSoftware.h"
+ #include "I2Cdev.h"
+ #include "MPU6050.h"
+ #include "MPU6050_6Axis_MotionApps20.h"
+ #include "MS5837.h"
+ #include "helper_3dmath.h"
+  
+ #include "daqSoftware.h"
 
 // For VS Code Linting support
 #ifndef Serial
@@ -125,12 +125,19 @@ void setup() {
   digitalWrite(INDICATORPIN, LOW);
 }
 
+float vOut;
+
 void loop() {
 
   // Before we acquire data, make sure DAQ is not errored, is supposed to be
   // running, and we're not in a delay period
   if (!(error) && running && (millis() - startTime > MEASUREDELAY)) {
     endTime = millis();
+
+    vOut = getBatteryVout();
+    Serial.print("Battery value is:");      
+    Serial.println(vOut); 
+    
     IMU.getMotion6(&ax, &ay, &az, &gx, &gy, &gz);
     getDMPData();
     Serial.print("Time: ");
@@ -140,7 +147,7 @@ void loop() {
     print_data_to_file();
 #endif
 
-    print_data_to_serial();
+    print_data_to_serial(); 
 
     Serial.print(duration);
 
@@ -442,4 +449,24 @@ void send_subsee_data(void) {
   // We send data as JSON, here manually constructed
 #endif
   return;
+}
+
+
+
+float getBatteryVout() {
+  
+  byte DAQcall = 0;
+  
+  Wire.beginTransmission(9); // transmit to device #9
+  Wire.write(DAQcall);              // sends one byte  
+  Wire.endTransmission();    // stop transmitting
+
+  Wire.requestFrom(9, 32);    // request 6 bytes from slave device #9
+
+  while (Wire.available()) { // slave may send less than requested
+    float vout = Wire.read();
+    
+    return vout;
+    }
+
 }
