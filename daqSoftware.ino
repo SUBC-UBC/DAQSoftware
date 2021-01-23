@@ -440,6 +440,19 @@ void print_data_to_serial() {
 void send_subsee_data(void) {
 #ifdef SUBSEERIAL
   // We send data as JSON, here manually constructed
+  {
+	"time": time,
+	"Yaw": ypr[0]
+	"Pitch": ypr[1],
+	"Roll": ypr[2],
+	"gx": gx,
+	"gy": gy,
+	"gz": gz,
+	"RPM": RPM,
+	"depth": depth,
+	//"battery": batterylevel,  // note that these are commented out as their variables do not exist yet
+	//"motor": motor
+ }
 #endif
   return;
 }
