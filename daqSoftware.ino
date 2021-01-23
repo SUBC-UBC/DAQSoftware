@@ -26,6 +26,8 @@ bool IMUWorking = false;
 int16_t ax, ay, az;
 int16_t gx, gy, gz;
 
+int rpm;
+
 volatile int changes = 0;
 unsigned long startTime;
 unsigned long endTime;
@@ -441,18 +443,29 @@ void send_subsee_data(void) {
 #ifdef SUBSEERIAL
   // We send data as JSON, here manually constructed
   {
-	"time": time,
+	//"time": time,
 	"Yaw": ypr[0]
 	"Pitch": ypr[1],
 	"Roll": ypr[2],
 	"gx": gx,
 	"gy": gy,
 	"gz": gz,
-	"RPM": RPM,
-	"depth": depth,
+	"RPM": rpm,
+	"depth": depth
 	//"battery": batterylevel,  // note that these are commented out as their variables do not exist yet
 	//"motor": motor
  }
+	char buff[300];
+	sprintf(buff, "{
+	\"Yaw\": %f,
+	\"Pitch\": %f,
+	\"Roll\": %f,
+	\"gx\": %d,
+	\"gy\": %d,
+	\"gz\": %d,
+	\"RPM\": %d,
+	\"depth\": %lf
+}", ypr[0], ypr[1], ypr[2], gx, gy, gz, rpm, depth);
 #endif
   return;
 }
