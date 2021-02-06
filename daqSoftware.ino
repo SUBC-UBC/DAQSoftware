@@ -5,6 +5,7 @@
 #include <SD.h>
 #include <SPI.h>
 #include <Wire.h>
+#include <RTClib.h>
 
 #include "src/lib/I2Cdev.h"
 //#include "lib/MPU6050.h"
@@ -27,6 +28,9 @@ int16_t ax, ay, az;
 int16_t gx, gy, gz;
 
 int rpm;
+
+// RTC Variables
+DateTime time;
 
 volatile int changes = 0;
 unsigned long startTime;
@@ -97,6 +101,12 @@ void setup() {
   while (!Serial) {
     // Wait for Serial to connect
   }
+  // When time needs to be re-set on a previously configured device, the
+  // following line sets the RTC to the date & time this sketch was compiled
+  // rtc.adjust(DateTime(F(__DATE__), F(__TIME__)));
+  // This line sets the RTC with an explicit date & time, for example to set
+  // January 21, 2014 at 3am you would call:
+  // rtc.adjust(DateTime(2014, 1, 21, 3, 0, 0));
 
 // SD Initialization
 #ifdef SDON
@@ -135,6 +145,7 @@ void loop() {
     endTime = millis();
     IMU.getMotion6(&ax, &ay, &az, &gx, &gy, &gz);
     getDMPData();
+    time = rtc.now(); // modified, should get the time value
     Serial.print("Time: ");
     duration = (endTime - recordTime);
 
