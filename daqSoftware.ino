@@ -493,6 +493,6 @@ void retrieve_battery_val()
   Wire.requestFrom(9, 32);    // request 6 bytes from slave device #9
 
   while (Wire.available()) { // slave may send less than requested
-    battery_val = Wire.read();
+    battery_val = Wire.read(); // may need to be edited for a larger value, currently works for an 8 bit (1 byte), value.
   }
 }
