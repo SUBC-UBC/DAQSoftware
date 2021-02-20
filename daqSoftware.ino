@@ -479,6 +479,7 @@ void send_subsee_data(void) {
 	\"RPM\": %d,
 	\"depth\": %lf
 }", ypr[0], ypr[1], ypr[2], gx, gy, gz, rpm, depth);
+Serial3.print(buff);
 #endif
   return;
 }
