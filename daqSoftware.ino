@@ -31,6 +31,8 @@ int rpm;
 
 // RTC Variables
 DateTime time;
+float battery_val // will store the current value of the battery (used to integrate alex's battery code)
+byte DAQcall = 0; 
 
 volatile int changes = 0;
 unsigned long startTime;
@@ -479,4 +481,18 @@ void send_subsee_data(void) {
 }", ypr[0], ypr[1], ypr[2], gx, gy, gz, rpm, depth);
 #endif
   return;
+}
+
+// integration of alex's battery code, stores the current value of the battery in the float variable battery_val
+void retrieve_battery_val()
+{
+  Wire.beginTransmission(9); // transmit to device #9
+  Wire.write(DAQcall);              // sends one byte  
+  Wire.endTransmission();    // stop transmitting
+
+  Wire.requestFrom(9, 32);    // request 6 bytes from slave device #9
+
+  while (Wire.available()) { // slave may send less than requested
+    battery_val = Wire.read();
+  }
 }
