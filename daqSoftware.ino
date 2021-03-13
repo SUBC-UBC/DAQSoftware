@@ -473,7 +473,7 @@ void send_subsee_data(void) {
 	\"Yaw\": %f,
 	\"Pitch\": %f,
 	\"RPM\": %d,
-	\"depth\": %lf
+	\"depth\": %lf,
 	\"battery\": %d
 }", ypr[0], ypr[1], rpm, depth, battery_status);
 Serial3.print(buff);
