@@ -15,6 +15,8 @@
 
 #include "daqSoftware.h"
 
+#define battery_threshold 12 // threshold value for the battery, can be adjusted
+
 // For VS Code Linting support
 #ifndef Serial
 HardwareSerial Serial(PIN_SERIAL_RX, PIN_SERIAL_TX);
@@ -32,6 +34,7 @@ int rpm;
 // RTC Variables
 DateTime time;
 float battery_val // will store the current value of the battery (used to integrate alex's battery code)
+int battery_status // variable for if the battery is at an acceptable level, will be passed to subsee
 byte DAQcall = 0; 
 
 volatile int changes = 0;
@@ -459,26 +462,20 @@ void send_subsee_data(void) {
 	//"time": time,
 	"Yaw": ypr[0]
 	"Pitch": ypr[1],
-	"Roll": ypr[2],
-	"gx": gx,
-	"gy": gy,
-	"gz": gz,
 	"RPM": rpm,
 	"depth": depth
-	//"battery": batterylevel,  // note that these are commented out as their variables do not exist yet
+	"battery": batterystatus,  
+	// note that these are commented out as their variables do not exist yet
 	//"motor": motor
  } */
 	char buff[300];
 	sprintf(buff, "{
 	\"Yaw\": %f,
 	\"Pitch\": %f,
-	\"Roll\": %f,
-	\"gx\": %d,
-	\"gy\": %d,
-	\"gz\": %d,
 	\"RPM\": %d,
 	\"depth\": %lf
-}", ypr[0], ypr[1], ypr[2], gx, gy, gz, rpm, depth);
+	\"battery\": %d
+}", ypr[0], ypr[1], rpm, depth, battery_status);
 Serial3.print(buff);
 #endif
   return;
@@ -495,5 +492,9 @@ void retrieve_battery_val()
 
   while (Wire.available()) { // slave may send less than requested
     battery_val = Wire.read(); // may need to be edited for a larger value, currently works for an 8 bit (1 byte), value.
+    if (battery_val >= battery_threshold)
+	    battery_status = true;
+    else
+	    battery_status = false;
   }
 }
