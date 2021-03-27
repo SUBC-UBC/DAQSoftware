@@ -15,6 +15,7 @@ void setup() {
   // put your setup code here, to run once:
   pixels.begin();
   pixels.setPixelColor(0, pixels.Color(255, 255, 255)); // Pixel system on currently set to white let me know if youd rather something else
+  pixel.show();
 }
 
 void loop() {
