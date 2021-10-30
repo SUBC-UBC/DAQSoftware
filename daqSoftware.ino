@@ -327,8 +327,9 @@ void getDMPData(void) {
   if (fifoCount < packetSize) {
     // Lets go back and wait for another interrupt. We shouldn't be here, we got
     // an interrupt from another event
-    // This is blocking so don't do it   while (fifoCount < packetSize)
-    // fifoCount = mpu.getFIFOCount();
+    // This is blocking so don't do it   
+    //while (fifoCount < packetSize)
+    fifoCount = mpu.getFIFOCount(); // non blocking maybe implementation?
   }
   // check for overflow (this should never happen unless our code is too
   // inefficient)
