@@ -10,12 +10,10 @@
 #include "src/lib/I2Cdev.h"
 //#include "lib/MPU6050.h"
 #include "src/lib/MPU6050_6Axis_MotionApps20.h"
-#include "src/lib/MS5837.h"
+#include <MS5837.h>
 #include "src/lib/helper_3dmath.h"
 
 #include "daqSoftware.h"
-
-#define battery_threshold 12 // threshold value for the battery, can be adjusted
 
 // For VS Code Linting support
 #ifndef Serial
@@ -33,9 +31,9 @@ int rpm;
 
 // RTC Variables
 DateTime time;
-float battery_val // will store the current value of the battery (used to integrate alex's battery code)
-int battery_status // variable for if the battery is at an acceptable level, will be passed to subsee
+float battery_val; // will store the current value of the battery (used to integrate alex's battery code)
 byte DAQcall = 0; 
+RTC_DS3231 rtc;
 
 volatile int changes = 0;
 unsigned long startTime;
@@ -146,25 +144,27 @@ void loop() {
 
   // Before we acquire data, make sure DAQ is not errored, is supposed to be
   // running, and we're not in a delay period
-  if (!(error) && running && (millis() - startTime > MEASUREDELAY)) {
+  if (running && (millis() - startTime > MEASUREDELAY)) {
+    //Serial.println("looping");
     endTime = millis();
     IMU.getMotion6(&ax, &ay, &az, &gx, &gy, &gz);
     getDMPData();
-    time = rtc.now(); // modified, should get the time value
-    Serial.print("Time: ");
+    //time = rtc.now(); // modified, should get the time value
+    // Serial.print("Time: ");
     duration = (endTime - recordTime);
 
 #ifdef SDON
     print_data_to_file();
 #endif
 
-    print_data_to_serial();
+    //print_data_to_serial();
 
-    Serial.print(duration);
+    // Serial.print(duration);
 
     changes = 0;
     startTime = millis();
   } else {
+    digitalWrite(ERRORPIN, !error);
     delay(DELAYTIME);
   }
 }
@@ -197,8 +197,8 @@ void buttonPress(void) {
           break; // leave the loop!
         }
       }
-      // Order of outputs: Time, Yaw, Pitch, Roll, ax, ay, az, gx, gy, gz, RPM
-      outputFile.print("Time(ms),Yaw,Pitch,Roll,ax,ay,az,gx,gy,gz");
+      // Order of outputs: Time, Yaw, Pitch, Roll, ax, ay, az, gx, gy, gz, battery, RPM
+      outputFile.print("Duration,Time,Yaw,Pitch,Roll,ax,ay,az,gx,gy,gz,battery");
 #ifdef TACHO
       outputFile.print(",RPM");
 #endif
@@ -281,7 +281,7 @@ void init_DMP(void) {
 
 void init_SD(void) {
   Serial.print("Initializing SD card...");
-  if (!SD.begin(PA15)) {
+  if (!SD.begin(PA4)) {
     Serial.println("SD initialization failed!");
     error = true;
   }
@@ -385,9 +385,12 @@ void getDMPData(void) {
 
 void print_data_to_file(void) {
 #ifdef SDON
-  // Order of outputs: Time, Yaw, Pitch, Roll, ax, ay, az, gx, gy, gz, RPM,
+  // Order of outputs: Duration, Time, Yaw, Pitch, Roll, ax, ay, az, gx, gy, gz, battery, RPM,
   // depth
   outputFile.print(duration);
+  outputFile.print(",");
+  //outputFile.print(time.unixtime());
+  outputFile.print(millis());
   outputFile.print(",");
   outputFile.print(ypr[0]);
   outputFile.print(",");
@@ -406,6 +409,8 @@ void print_data_to_file(void) {
   outputFile.print(gy);
   outputFile.print(",");
   outputFile.print(gz);
+  outputFile.print(",");
+  outputFile.print(battery_val);
 #ifdef TACHO
   outputFile.print(",");
   outputFile.print(rpm);
@@ -462,21 +467,18 @@ void send_subsee_data(void) {
 	//"time": time,
 	"Yaw": ypr[0]
 	"Pitch": ypr[1],
+	"Roll": ypr[2],
+	"gx": gx,
+	"gy": gy,
+	"gz": gz,
 	"RPM": rpm,
 	"depth": depth
-	"battery": batterystatus,  
-	// note that these are commented out as their variables do not exist yet
+	//"battery": batterylevel,  // note that these are commented out as their variables do not exist yet
 	//"motor": motor
  } */
 	char buff[300];
-	sprintf(buff, "{
-	\"Yaw\": %f,
-	\"Pitch\": %f,
-	\"RPM\": %d,
-	\"depth\": %lf,
-	\"battery\": %d
-}", ypr[0], ypr[1], rpm, depth, battery_status);
-Serial3.print(buff);
+	sprintf(buff, "{\"Time\": %d,\"Yaw\": %f,\"Pitch\": %f,\"Roll\": %f,\"gx\": %d,\"gy\": %d,\"gz\": %d,\"RPM\": %d,\"depth\": %lf,\"battery\": %f}", time.unixtime(), ypr[0], ypr[1], ypr[2], gx, gy, gz, rpm, depth, battery_val);
+  Serial3.print(buff);
 #endif
   return;
 }
@@ -492,9 +494,5 @@ void retrieve_battery_val()
 
   while (Wire.available()) { // slave may send less than requested
     battery_val = Wire.read(); // may need to be edited for a larger value, currently works for an 8 bit (1 byte), value.
-    if (battery_val >= battery_threshold)
-	    battery_status = true;
-    else
-	    battery_status = false;
   }
 }
