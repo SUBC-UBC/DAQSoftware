@@ -2,6 +2,19 @@
 // GPL v3
 // SUBC: the UBC Submarine Design Team
 
+/*
+TODO:
+-Try dmpInitialize() from the MPU6050MotionApps library instead of the current one in DAQSoftware
+
+-Smooth SDA, SCK, and INT signals with resistors?
+
+-Verify MPU6050 
+  Get raw accelerometer data and process it in MATLab
+  See if preprocessed data isn't garbage
+
+-Migrate onto the STM32 Nucleo Development board
+*/
+
 #include <SD.h>
 #include <SPI.h>
 #include <Wire.h>
