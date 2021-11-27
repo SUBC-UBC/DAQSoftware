@@ -21,7 +21,7 @@ TODO:
 #include <RTClib.h>
 
 #include "src/lib/I2Cdev.h"
-//#include "lib/MPU6050.h"
+//#include "src/lib/MPU6050.h"
 #include "src/lib/MPU6050_6Axis_MotionApps20.h"
 #include <MS5837.h>
 #include "src/lib/helper_3dmath.h"
